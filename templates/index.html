@@ -8,43 +8,43 @@
 <div class="row">
 {{range .}}
   <div class="col-md-4">
-  <h2>Server</h2>
+  <h2>{{.Environment.Hostname}}</h2>
   <table class="table">
 	<tr>
 		<td>Clients</td>
-		<td>{{.Clients }}</td>
+		<td>{{.Statistics.Clients }}</td>
 	</tr>
 	<tr>
 		<td>Latency</td>
-		<td>{{.Latency }}</td>
+		<td>{{.Statistics.Latency }}</td>
 	</tr>
 	<tr>
 		<td>Received</td>
-		<td>{{.Received }}</td>
+		<td>{{.Statistics.Received }}</td>
 	</tr>
 	<tr>
 		<td>Sent</td>
-		<td>{{.Sent }}</td>
+		<td>{{.Statistics.Sent }}</td>
 	</tr>
 	<tr>
 		<td>Connections</td>
-		<td>{{.Connections }}</td>
+		<td>{{.Statistics.Connections }}</td>
 	</tr>
 	<tr>
 		<td>Outstanding</td>
-		<td>{{.Outstanding }}</td>
+		<td>{{.Statistics.Outstanding }}</td>
 	</tr>
 	<tr>
 		<td>Zxid</td>
-		<td>{{.Zxid }}</td>
+		<td>{{.Statistics.Zxid }}</td>
 	</tr>
 	<tr>
 		<td>Mode</td>
-		<td>{{.Mode }}</td>
+		<td>{{.Statistics.Mode }}</td>
 	</tr>
 	<tr>
 		<td>Node Count</td>
-		<td>{{.NodeCount }}</td>
+		<td>{{.Statistics.NodeCount }}</td>
 	</tr>
 </table>
 </div>

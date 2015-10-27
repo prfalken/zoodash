@@ -18,25 +18,18 @@ func main() {
 		"192.168.33.10:2181",
 		"192.168.33.10:2182",
 	}
-	var zkstats []*zk.Stat
-	var zkenvs []*zk.Env
+	var zookeepers []*zk.Zookeeper
 	for _, server := range ZKservers {
-		zkstat := &zk.Stat{}
-		zkenv := &zk.Env{}
-		zkstats = append(zkstats, zkstat)
-		zkenvs = append(zkenvs, zkenv)
-
-		go zk.RunStatsFetcher(zkstat, zkenv, server)
+		zookeeper := &zk.Zookeeper{}
+		zookeepers = append(zookeepers, zookeeper)
+		go zk.RunStatsFetcher(zookeeper, server)
 	}
 
 	go func() {
 
 		for {
-			for _, stat := range zkstats {
-				fmt.Println(stat)
-			}
-			for _, env := range zkenvs {
-				fmt.Println(env)
+			for _, zook := range zookeepers {
+				fmt.Println(zook)
 			}
 
 			time.Sleep(1 * time.Second)
@@ -44,7 +37,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, index(&zkstats, &zkenvs))
+		fmt.Fprintf(w, index(&zookeepers))
 	})
 	http.ListenAndServe(":8080", nil)
 

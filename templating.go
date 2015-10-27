@@ -18,14 +18,14 @@ func loadTemplate(filename string) string {
 	return string(body)
 }
 
-func index(stats *[]*zk.Stat, envs *[]*zk.Env) string {
+func index(zookeeper *[]*zk.Zookeeper) string {
 	tmpl := loadTemplate("index.html")
 	t, err := template.New("index").Parse(tmpl)
 	if err != nil {
 		logger.Error.Println("could not parse template " + tmpl)
 	}
 	buf := new(bytes.Buffer)
-	err = t.Execute(buf, stats)
+	err = t.Execute(buf, zookeeper)
 	rendered := buf.String()
 	return rendered
 }
