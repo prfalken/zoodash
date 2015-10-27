@@ -10,7 +10,7 @@ import (
 )
 
 // interval of zookeeper stat checks
-const ZKCheckInterval = 1 * time.Second
+const ZKCheckInterval = 30 * time.Second
 
 func RunStatsFetcher(zookeeper *Zookeeper, ZKserver string) {
 	for {
@@ -20,7 +20,7 @@ func RunStatsFetcher(zookeeper *Zookeeper, ZKserver string) {
 			logger.Warning.Println("Could not tcp dial Zookeeper")
 		}
 		out := get4LettersFromZookeeper(conn, "stat")
-		ParseStatsOutput(out, &zookeeper.Statistics)
+		zookeeper.Statistics.ParseOutput(out)
 		conn.Close()
 
 		// To be refactored - How to keep the same connection over time ?
@@ -30,7 +30,7 @@ func RunStatsFetcher(zookeeper *Zookeeper, ZKserver string) {
 			logger.Warning.Println("Could not tcp dial Zookeeper")
 		}
 		out = get4LettersFromZookeeper(conn, "envi")
-		ParseEnvOutput(out, &zookeeper.Environment)
+		zookeeper.Environment.ParseOutput(out)
 		conn.Close()
 
 		time.Sleep(ZKCheckInterval)

@@ -46,7 +46,7 @@ func catch(reg, text string) string {
 
 }
 
-func ParseStatsOutput(zkOutput string, stat *Stat) {
+func (stat *Stat) ParseOutput(zkOutput string) {
 	stat.Latency = catch("Latency min/avg/max: (.*)", zkOutput)
 	stat.Zxid = catch("Zxid: (.*)", zkOutput)
 	stat.Mode = catch("Mode: (.*)", zkOutput)
@@ -79,6 +79,6 @@ func ParseStatsOutput(zkOutput string, stat *Stat) {
 	stat.NodeCount = nodeCount
 }
 
-func ParseEnvOutput(zkOutput string, env *Env) {
+func (env *Env) ParseOutput(zkOutput string) {
 	env.Hostname = catch("host.name=(.*)", zkOutput)
 }
