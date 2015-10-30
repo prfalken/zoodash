@@ -10,29 +10,28 @@ import (
 )
 
 // interval of zookeeper stat checks
-const ZKCheckInterval = 30 * time.Second
+const ZKCheckInterval = 5 * time.Second
+const zkDialTimeout = 10 * time.Second
 
-func RunStatsFetcher(zookeeper *Zookeeper, ZKserver string) {
+func RunFetcher(zookeeper *Zookeeper, ZKserver string) {
+
+	commands := map[string]OutputParser{
+		"stat": &zookeeper.Statistics,
+		"envi": &zookeeper.Environment,
+	}
+
 	for {
-		timeout := 3 * time.Second
-		conn, err := net.DialTimeout("tcp", ZKserver, timeout)
-		if err != nil {
-			logger.Warning.Println("Could not tcp dial Zookeeper")
-		}
-		out := get4LettersFromZookeeper(conn, "stat")
-		zookeeper.Statistics.ParseOutput(out)
-		conn.Close()
 
-		// To be refactored - How to keep the same connection over time ?
-		conn, err = net.DialTimeout("tcp", ZKserver, timeout)
-		defer conn.Close()
-		if err != nil {
-			logger.Warning.Println("Could not tcp dial Zookeeper")
-		}
-		out = get4LettersFromZookeeper(conn, "envi")
-		zookeeper.Environment.ParseOutput(out)
-		conn.Close()
+		for command, zkPageType := range commands {
+			conn, err := net.DialTimeout("tcp", ZKserver, zkDialTimeout)
+			if err != nil {
+				logger.Warning.Println("Could not tcp dial Zookeeper")
+			}
+			out := get4LettersFromZookeeper(conn, command)
+			zkPageType.ParseOutput(out)
+			conn.Close()
 
+		}
 		time.Sleep(ZKCheckInterval)
 	}
 }

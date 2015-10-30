@@ -40,6 +40,10 @@ type Zookeeper struct {
 	Statistics  Stat
 }
 
+type OutputParser interface {
+	ParseOutput(string)
+}
+
 func catch(reg, text string) string {
 	re := regexp.MustCompile(reg)
 	return re.FindStringSubmatch(text)[1]

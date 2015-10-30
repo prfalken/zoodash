@@ -22,7 +22,7 @@ func main() {
 	for _, server := range ZKservers {
 		zookeeper := &zk.Zookeeper{}
 		zookeepers = append(zookeepers, zookeeper)
-		go zk.RunStatsFetcher(zookeeper, server)
+		go zk.RunFetcher(zookeeper, server)
 	}
 
 	go func() {
