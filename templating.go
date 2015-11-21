@@ -5,27 +5,27 @@ import (
 	"io/ioutil"
 	"text/template"
 
-	"github.com/prfalken/zoodash/logger"
-	zk "github.com/prfalken/zoodash/zookeeper"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 func loadTemplate(filename string) string {
 	filename = "templates/" + filename
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
-		logger.Error.Println("Could not load template " + filename)
+		Error.Println("Could not load template " + filename)
 	}
 	return string(body)
 }
 
-func index(zookeeper *[]*zk.Zookeeper) string {
+func index(stats []zk.ServerStats) string {
 	tmpl := loadTemplate("index.html")
 	t, err := template.New("index").Parse(tmpl)
 	if err != nil {
-		logger.Error.Println("could not parse template " + tmpl)
+		Error.Println("could not parse template " + tmpl)
 	}
 	buf := new(bytes.Buffer)
-	err = t.Execute(buf, zookeeper)
+	Info.Println(stats)
+	err = t.Execute(buf, stats)
 	rendered := buf.String()
 	return rendered
 }

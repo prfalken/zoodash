@@ -7,37 +7,47 @@ import (
 	"os"
 	"time"
 
-	"github.com/prfalken/zoodash/logger"
-	zk "github.com/prfalken/zoodash/zookeeper"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 func main() {
-	logger.Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 
 	ZKservers := []string{
 		"192.168.33.10:2181",
 		"192.168.33.10:2182",
+		"192.168.33.10:2183",
 	}
-	var zookeepers []*zk.Zookeeper
-	for _, server := range ZKservers {
-		zookeeper := &zk.Zookeeper{}
-		zookeepers = append(zookeepers, zookeeper)
-		go zk.RunFetcher(zookeeper, server)
-	}
-
+	var stats []zk.ServerStats
 	go func() {
-
 		for {
-			for _, zook := range zookeepers {
-				fmt.Println(zook)
+
+			serverStats, ok := zk.FLWSrvr(ZKservers, 3*time.Second)
+			buff := []zk.ServerStats{}
+			for _, s := range serverStats {
+				buff = append(buff, *s)
+			}
+			stats = buff
+			if !ok {
+				Error.Println("Failed to fetch stats on one or more servers")
 			}
 
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
+
 	}()
 
+	// go func() {
+	// 	for {
+	// 		for _, s := range stats {
+	// 			Info.Println(s)
+	// 		}
+	// 		time.Sleep(1 * time.Second)
+	// 	}
+	// }()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, index(&zookeepers))
+		fmt.Fprintf(w, index(stats))
 	})
 	http.ListenAndServe(":8080", nil)
 
