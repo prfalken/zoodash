@@ -2,34 +2,55 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
+	"sync"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func main() {
-	Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
 
-	ZKservers := []string{
-		"192.168.33.10:2181",
-		"192.168.33.10:2182",
-		"192.168.33.10:2183",
-	}
-	var stats []zk.ServerStats
+// Cache is a simple in-memory cache for stats
+type Cache struct {
+	lock  sync.RWMutex
+	stats []zk.ServerStats
+}
+
+// NewCache contstructs a new Cache
+func NewCache() *Cache {
+	c := new(Cache)
+	return c
+}
+
+func main() {
+	statsCache := NewCache()
+
 	go func() {
 		for {
 
-			serverStats, ok := zk.FLWSrvr(ZKservers, 3*time.Second)
-			buff := []zk.ServerStats{}
-			for _, s := range serverStats {
-				buff = append(buff, *s)
+			ZKservers := []string{
+				// "192.168.33.10:2181",
+				"192.168.33.10:2182",
+				// "192.168.33.10:2183",
 			}
-			stats = buff
+
+			serverStats, ok := zk.FLWSrvr(ZKservers, 3*time.Second)
+			statsList := []zk.ServerStats{}
+			for _, s := range serverStats {
+				if s.Error != nil {
+					log.Debug(s.Error)
+				}
+				statsList = append(statsList, *s)
+			}
+			statsCache.lock.Lock()
+			statsCache.stats = statsList
+			statsCache.lock.Unlock()
 			if !ok {
-				Error.Println("Failed to fetch stats on one or more servers")
+				log.Error("Failed to fetch stats on one or more servers")
 			}
 
 			time.Sleep(2 * time.Second)
@@ -39,15 +60,16 @@ func main() {
 
 	// go func() {
 	// 	for {
-	// 		for _, s := range stats {
-	// 			Info.Println(s)
-	// 		}
-	// 		time.Sleep(1 * time.Second)
+	// 		log.Info(statsCache.stats)
+
+	// 		time.Sleep(2 * time.Second)
 	// 	}
 	// }()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, index(stats))
+		statsCache.lock.RLock()
+		defer statsCache.lock.RUnlock()
+		fmt.Fprintf(w, index(statsCache.stats))
 	})
 	http.ListenAndServe(":8080", nil)
 
