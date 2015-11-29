@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/samuel/go-zookeeper/zk"
@@ -29,42 +28,7 @@ func NewCache() *Cache {
 func main() {
 	statsCache := NewCache()
 
-	go func() {
-		for {
-
-			ZKservers := []string{
-				// "192.168.33.10:2181",
-				"192.168.33.10:2182",
-				// "192.168.33.10:2183",
-			}
-
-			serverStats, ok := zk.FLWSrvr(ZKservers, 3*time.Second)
-			statsList := []zk.ServerStats{}
-			for _, s := range serverStats {
-				if s.Error != nil {
-					log.Debug(s.Error)
-				}
-				statsList = append(statsList, *s)
-			}
-			statsCache.lock.Lock()
-			statsCache.stats = statsList
-			statsCache.lock.Unlock()
-			if !ok {
-				log.Error("Failed to fetch stats on one or more servers")
-			}
-
-			time.Sleep(2 * time.Second)
-		}
-
-	}()
-
-	// go func() {
-	// 	for {
-	// 		log.Info(statsCache.stats)
-
-	// 		time.Sleep(2 * time.Second)
-	// 	}
-	// }()
+	go fetchStats(statsCache)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		statsCache.lock.RLock()
