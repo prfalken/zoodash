@@ -7,16 +7,10 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func fetchStats(statsCache *Cache) {
+func fetchStats(statsCache *Cache, zkServers []string) {
 	for {
 
-		ZKservers := []string{
-			// "192.168.33.10:2181",
-			"192.168.99.100:32770",
-			"192.168.99.100:32773",
-		}
-
-		serverStats, ok := zk.FLWSrvr(ZKservers, 3*time.Second)
+		serverStats, ok := zk.FLWSrvr(zkServers, 3*time.Second)
 		statsList := []zk.ServerStats{}
 		for _, s := range serverStats {
 			if s.Error != nil {

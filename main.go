@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -26,9 +27,15 @@ func NewCache() *Cache {
 }
 
 func main() {
+
+	if len(zoodashConfig.Adresses) < 1 {
+		log.Error("No zookeeper servers specified in config file")
+		os.Exit(1)
+	}
+
 	statsCache := NewCache()
 
-	go fetchStats(statsCache)
+	go fetchStats(statsCache, zoodashConfig.Adresses)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		statsCache.lock.RLock()
