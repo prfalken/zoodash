@@ -12,7 +12,7 @@ var zoodashConfig Config
 // Config is a basic configuration in a yaml file
 type Config struct {
 	Path     string
-	Adresses []string `yaml:"servers,omitempty"`
+	Adresses map[string]string `yaml:"servers,omitempty"`
 }
 
 func init() {
@@ -24,5 +24,5 @@ func init() {
 			log.Panic(err)
 		}
 	}
-
+	log.Info(zoodashConfig)
 }

@@ -4,26 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/samuel/go-zookeeper/zk"
 )
 
 func init() {
-	log.SetLevel(log.DebugLevel)
-}
-
-// Cache is a simple in-memory cache for stats
-type Cache struct {
-	lock  sync.RWMutex
-	stats []zk.ServerStats
-}
-
-// NewCache contstructs a new Cache
-func NewCache() *Cache {
-	c := new(Cache)
-	return c
+	log.SetLevel(log.WarnLevel)
 }
 
 func main() {
