@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/julienschmidt/httprouter"
 )
 
 func init() {
-	log.SetLevel(log.WarnLevel)
+	log.SetLevel(log.DebugLevel)
 }
 
 func main() {
@@ -19,15 +19,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	statsCache := NewCache()
+	statsCache := NewStats()
 
-	go fetchStats(statsCache, zoodashConfig.Adresses)
+	go statsCache.fetchStats(zoodashConfig.Adresses)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		statsCache.lock.RLock()
-		defer statsCache.lock.RUnlock()
-		fmt.Fprintf(w, index(statsCache.stats))
-	})
-	http.ListenAndServe(":8080", nil)
+	router := httprouter.New()
+	router.GET("/", statsCache.IndexHandler)
+	router.GET("/browse/*filepath", browseHandler)
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 
 }

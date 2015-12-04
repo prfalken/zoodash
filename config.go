@@ -26,3 +26,22 @@ func init() {
 	}
 	log.Info(zoodashConfig)
 }
+
+func getZKAddressesFromConfig() []string {
+
+	ipPorts := []string{}
+	for _, ipPort := range zoodashConfig.Adresses {
+		ipPorts = append(ipPorts, ipPort)
+	}
+	log.Debug(ipPorts)
+	return ipPorts
+}
+
+func getZKHostsFromConfig() []string {
+	hosts := []string{}
+
+	for host := range zoodashConfig.Adresses {
+		hosts = append(hosts, host)
+	}
+	return hosts
+}

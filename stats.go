@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -8,32 +9,38 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func fetchStats(statsCache *Cache, zkServers map[string]string) {
+type StatsStorage struct {
+	lock  sync.RWMutex
+	stats map[string]zk.ServerStats
+}
+
+// NewStats contstructs a new StatsStorage
+func NewStats() *StatsStorage {
+	c := new(StatsStorage)
+	return c
+}
+
+func (store *StatsStorage) fetchStats(zkServers map[string]string) {
 
 	for {
-		hosts := []string{}
+		hosts := getZKHostsFromConfig()
 		ipPorts := []string{}
-
-		for _, ipPort := range zkServers {
-			ipPorts = append(ipPorts, ipPort)
+		// keep order when splitting in hosts list and ip:port list
+		for _, h := range hosts {
+			ipPorts = append(ipPorts, zkServers[h])
 		}
+		servers, ok := zk.FLWSrvr(ipPorts, 3*time.Second)
 
-		for host := range zkServers {
-			hosts = append(hosts, host)
-		}
-
-		serverStats, ok := zk.FLWSrvr(ipPorts, 3*time.Second)
-
-		stats := map[string]zk.ServerStats{}
-		for idx, s := range serverStats {
+		recorded := map[string]zk.ServerStats{}
+		for idx, s := range servers {
 			if s.Error != nil {
 				log.Debug(s.Error)
 			}
-			stats[hosts[idx]] = *s
+			recorded[hosts[idx]] = *s
 		}
-		statsCache.lock.Lock()
-		statsCache.stats = stats
-		statsCache.lock.Unlock()
+		store.lock.Lock()
+		store.stats = recorded
+		store.lock.Unlock()
 		if !ok {
 			log.Error("Failed to fetch stats on one or more servers")
 		}
@@ -41,4 +48,10 @@ func fetchStats(statsCache *Cache, zkServers map[string]string) {
 		time.Sleep(2 * time.Second)
 	}
 
+}
+
+func (s *StatsStorage) getStats() map[string]zk.ServerStats {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.stats
 }
