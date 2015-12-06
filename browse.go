@@ -42,7 +42,6 @@ func getNodeChildren(path string) ([]Node, error) {
 		log.Debug(node)
 		nodes = append(nodes, node)
 	}
-
 	return nodes, nil
 
 }

@@ -23,6 +23,8 @@ func (s *StatsStorage) statsHandler(w http.ResponseWriter, r *http.Request, _ ht
 }
 
 func apiHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var parent string
 	parentParam := r.URL.Query()["parent"]
 	if len(parentParam) > 0 {
@@ -30,17 +32,19 @@ func apiHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	} else {
 		parent = "/"
 	}
-	log.Error(parent)
-	w.Header().Set("Content-Type", "application/json")
+
 	nodes, err := getNodeChildren(parent)
 
 	if err != nil {
 		fmt.Fprint(w, "Error")
 	}
-	if err := json.NewEncoder(w).Encode(nodes); err != nil {
-		fmt.Fprint(w, "Error")
+	if len(nodes) > 0 {
+		if err := json.NewEncoder(w).Encode(nodes); err != nil {
+			fmt.Fprint(w, "Error")
+		}
+	} else {
+		fmt.Fprint(w, "[]")
 	}
-
 }
 
 func browseHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
