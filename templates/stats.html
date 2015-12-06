@@ -1,0 +1,37 @@
+<div class="row">
+{{ range $hostname, $stats := . }}
+ <div class="col-md-4">
+ <h2>{{$hostname}}</h2>
+  <table class="table">
+    <tr>
+        <td>Latencies</td>
+        <td>{{$stats.MinLatency }}/{{$stats.AvgLatency}}/{{$stats.MaxLatency}}</td>
+    </tr>
+    <tr>
+        <td>Received</td>
+        <td>{{$stats.Received }}</td>
+    </tr>
+    <tr>
+        <td>Sent</td>
+        <td>{{$stats.Sent }}</td>
+    </tr>
+    <tr>
+        <td>Connections</td>
+        <td>{{$stats.Connections }}</td>
+    </tr>
+    <tr>
+        <td>Outstanding</td>
+        <td>{{$stats.Outstanding }}</td>
+    </tr>
+    <tr>
+        <td>Mode</td>
+        <td>{{$stats.Mode }}</td>
+    </tr>
+    <tr>
+        <td>Node Count</td>
+        <td>{{$stats.NodeCount }}</td>
+    </tr>
+</table>
+</div>
+{{end}}
+<div class="row">

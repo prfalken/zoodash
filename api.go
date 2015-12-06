@@ -13,15 +13,13 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func (s *StatsStorage) IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	stats := s.getStats()
-	fmt.Fprintf(w, buildStatsPage(stats))
+func indexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, buildIndexPage())
 }
 
-func staticHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
+func (s *StatsStorage) statsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	stats := s.getStats()
+	fmt.Fprintf(w, buildStatsPage(stats))
 }
 
 func apiHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -71,8 +69,12 @@ func buildPage(pageName string, context interface{}) string {
 	return rendered
 }
 
+func buildIndexPage() string {
+	return buildPage("index.html", nil)
+}
+
 func buildStatsPage(stats map[string]zk.ServerStats) string {
-	return buildPage("index.html", stats)
+	return buildPage("stats.html", stats)
 }
 
 func buildBrowsePage() string {
