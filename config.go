@@ -24,7 +24,7 @@ func init() {
 			log.Panic(err)
 		}
 	}
-	log.Info(zoodashConfig)
+	log.Debug(zoodashConfig)
 }
 
 func getZKAddressesFromConfig() []string {

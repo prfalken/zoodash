@@ -5,6 +5,7 @@ import (
 	"os"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/handlers"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -25,8 +26,12 @@ func main() {
 
 	router := httprouter.New()
 	router.GET("/", statsCache.IndexHandler)
-	router.GET("/browse/*filepath", browseHandler)
+	router.GET("/api/", apiHandler)
+	router.GET("/browse", browseHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	router.GET("/static/*filepath", staticHandler)
+
+	log.Info("Listening...")
+	log.Fatal(http.ListenAndServe(":8080", handlers.LoggingHandler(os.Stdout, router)))
 
 }

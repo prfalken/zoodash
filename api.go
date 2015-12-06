@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,9 +18,35 @@ func (s *StatsStorage) IndexHandler(w http.ResponseWriter, r *http.Request, _ ht
 	fmt.Fprintf(w, buildStatsPage(stats))
 }
 
+func staticHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+}
+
+func apiHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var parent string
+	parentParam := r.URL.Query()["parent"]
+	if len(parentParam) > 0 {
+		parent = parentParam[0]
+	} else {
+		parent = "/"
+	}
+	log.Error(parent)
+	w.Header().Set("Content-Type", "application/json")
+	nodes, err := getNodeChildren(parent)
+
+	if err != nil {
+		fmt.Fprint(w, "Error")
+	}
+	if err := json.NewEncoder(w).Encode(nodes); err != nil {
+		fmt.Fprint(w, "Error")
+	}
+
+}
+
 func browseHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	path := p.ByName("filepath")
-	fmt.Fprintf(w, buildBrowsePage(path))
+	fmt.Fprintf(w, buildBrowsePage())
 }
 
 func loadTemplate(filename string) string {
@@ -48,7 +75,6 @@ func buildStatsPage(stats map[string]zk.ServerStats) string {
 	return buildPage("index.html", stats)
 }
 
-func buildBrowsePage(path string) string {
-	children := ZKBrowse(path)
-	return buildPage("browse.html", children)
+func buildBrowsePage() string {
+	return buildPage("browse.html", nil)
 }
