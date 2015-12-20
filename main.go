@@ -30,7 +30,8 @@ func main() {
 	router.GET("/browse", browseHandler)
 	router.GET("/stats", statsCache.statsHandler)
 
-	log.Info("Listening...")
-	log.Fatal(http.ListenAndServe(":8080", handlers.LoggingHandler(os.Stdout, router)))
+	listenIPPort := zoodashConfig.ListenAddress + ":" + zoodashConfig.ListenPort
+	log.Info("Listening on " + listenIPPort)
+	log.Fatal(http.ListenAndServe(listenIPPort, handlers.LoggingHandler(os.Stdout, router)))
 
 }

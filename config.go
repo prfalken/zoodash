@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 
 	log "github.com/Sirupsen/logrus"
@@ -11,8 +12,10 @@ var zoodashConfig Config
 
 // Config is a basic configuration in a yaml file
 type Config struct {
-	Path     string
-	Adresses map[string]string `yaml:"servers,omitempty"`
+	Path          string
+	Adresses      map[string]string `yaml:"servers,omitempty"`
+	ListenAddress string
+	ListenPort    string
 }
 
 func init() {
@@ -24,7 +27,19 @@ func init() {
 			log.Panic(err)
 		}
 	}
+
+	overrideWithCommandLine(&zoodashConfig)
+
 	log.Debug(zoodashConfig)
+}
+
+func overrideWithCommandLine(config *Config) {
+	lAddress := flag.String("listen", "127.0.0.1", "IP address to listen to")
+	lPort := flag.String("port", "8080", "TCP port to listen to")
+	flag.Parse()
+	config.ListenAddress = *lAddress
+	config.ListenPort = *lPort
+
 }
 
 func getZKAddressesFromConfig() []string {
